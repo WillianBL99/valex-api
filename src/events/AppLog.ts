@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import ITypes from "../interfaces/index";
+import ITypes from "../interfaces/index.js";
 
 const types: ITypes = {
   Middleware: 'magenta',

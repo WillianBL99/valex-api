@@ -1,7 +1,7 @@
 import pg, { ClientConfig } from "pg";
 
-import AppLog from "../events/AppLog";
-import "./setup";
+import AppLog from "../events/AppLog.js";
+import "./setup.js";
 
 const { Client } = pg;
 const connectionString = process.env.DATABASE_URL ?? "";
@@ -15,6 +15,7 @@ if (process.env.MODE === 'PROD') {
 
 const client = new Client( databaseConfig );
 exec();
+export default client;
 
 async function exec() {
   try {
