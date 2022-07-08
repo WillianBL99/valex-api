@@ -1,15 +1,26 @@
 import { NextFunction, Request, Response } from "express";
 import AppError from "../config/error.js";
+import * as companyRepository from "../repositories/companyRepository.js";
 
-export function apiKeyHeaderValidation( req: Request, _res: Response, next: NextFunction ) {
+export async function apiKeyHeaderValidation( req: Request, _res: Response, next: NextFunction ) {
   const apiKey = req.header("x-api-key");
 
   if( !apiKey ) {
     throw new AppError(
-      "Invalid api key",
+      "Api key not sent",
       422,
-      "Invalid api key",
-      "Make sure you provide a valid key"
+      "Api key not sent",
+      "Make sure you provide a valid api key"
+    )
+  }
+
+  const company = await companyRepository.findByApiKey( apiKey );
+  if( !company ) {
+    throw new AppError(
+      "Api key not found",
+      422,
+      "Api key not found",
+      "Make sure you provide a valid api key"
     )
   }
 
