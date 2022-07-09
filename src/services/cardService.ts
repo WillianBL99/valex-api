@@ -47,4 +47,11 @@ export async function create( cardCreateData: CreateCard ) {
   }
 
   const cardName = splitName?.join(" ").toUpperCase();
+
+  const currentYear = new Date().getFullYear();
+  const currentMonth = new Date().getMonth();
+  const expirationTime = 5;
+  const expiryYear = ( currentYear + expirationTime ) % 100;
+
+  const expirationDate = `${currentMonth}/${ expiryYear }`;
 }
