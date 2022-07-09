@@ -48,7 +48,7 @@ export async function create( cardCreateData: CreateCard ) {
     }
   }
 
-  const cardName = splitName?.join(" ").toUpperCase();
+  const cardName = splitName?.join(" ").toUpperCase() || "";
 
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
@@ -59,5 +59,18 @@ export async function create( cardCreateData: CreateCard ) {
 
 
   const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
-  const cardCVV = cryptr.encrypt( faker.finance.creditCardCVV() );
+  const securityCode = cryptr.encrypt( faker.finance.creditCardCVV() );
+
+  const cardInsertData : cardRepository.CardInsertData = {
+    type,
+    securityCode,
+    expirationDate,
+    number: cardNumber,
+    isBlocked: true,
+    isVirtual: false,
+    employeeId: employee.id,
+    cardholderName: cardName
+  };
+
+  await cardRepository.insert( cardInsertData );
 }
