@@ -5,6 +5,7 @@ import * as cardRepository from "../repositories/cardRepository.js";
 import { faker } from "@faker-js/faker";
 import Cryptr from "cryptr";
 import "./../config/setup.js";
+import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
 
 export interface CreateCard {
   cpf: string,
@@ -35,6 +36,40 @@ export async function create( cardCreateData: CreateCard ) {
   };
 
   await cardRepository.insert( cardInsertData );
+}
+
+export async function active( cardId: number ) {
+  const card = await cardRepository.findById( cardId );
+  if( !card ) {
+    throw new AppError(
+      "Card not found",
+      404,
+      "Card not found",
+      "Make sure to send a valid card data"
+    );
+  }
+
+  const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
+
+  const { month, year } = parseDataToInt( expiryMonth, expiryYear );
+  const { currentMonth, currentYear } = getCurrentData();
+  if( currentMonth > month && currentYear >= year ) {
+    throw new AppError(
+      "Card is expired",
+      409,
+      "Card is expired",
+      "This card is expired. Unauthorized update."
+    );
+  }
+
+  if( !card.password ) {
+    throw new AppError(
+      "Card already has password",
+      409,
+      "Card already has password",
+      "This card already has password. Unauthorized update."
+    );
+  }
 }
 
 async function findEmployee( cpf: string, companyId: number ) {
