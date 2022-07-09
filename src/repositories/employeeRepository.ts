@@ -16,3 +16,12 @@ export async function findById(id: number) {
 
   return result.rows[0];
 }
+
+export async function findByCompanyIdAndCPF(cpf: number, companyId: number) {
+  const result = await connection.query<Employee, [number, number]>(
+    `SELECT * FROM employees WHERE cpf=$1 AND "companyId"=$2`,
+    [ cpf, companyId ]
+  );
+
+  return result.rows[0];
+}
