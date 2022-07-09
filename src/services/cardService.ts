@@ -3,6 +3,8 @@ import { TransactionTypes } from "../repositories/cardRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
 import { faker } from "@faker-js/faker";
+import Cryptr from "cryptr";
+import "./../config/setup.js";
 
 export interface CreateCard {
   cpf: number,
@@ -54,4 +56,8 @@ export async function create( cardCreateData: CreateCard ) {
   const expiryYear = ( currentYear + expirationTime ) % 100;
 
   const expirationDate = `${currentMonth}/${ expiryYear }`;
+
+
+  const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
+  const cardCVV = cryptr.encrypt( faker.finance.creditCardCVV() );
 }
