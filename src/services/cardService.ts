@@ -33,4 +33,18 @@ export async function create( cardCreateData: CreateCard ) {
       "make sure this employee does not have a card of the same type"
     )
   }
+
+  const cardNumber = faker.unique( faker.finance.creditCardNumber );
+
+  const nameLongerThanThreeLetters = /(\w){3,}/g;
+  const splitName = employee.fullName.match( nameLongerThanThreeLetters );
+
+  const containMiddleName = splitName && splitName?.length >= 3;
+  if( containMiddleName ) {
+    for( let i = 1; i < splitName.length - 1; i++ ) {
+      splitName[i] = splitName[i].slice(0,1);
+    }
+  }
+
+  const cardName = splitName?.join(" ").toUpperCase();
 }
