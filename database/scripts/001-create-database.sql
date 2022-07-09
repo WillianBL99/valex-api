@@ -1,7 +1,7 @@
 CREATE TABLE companies (
 	"id" SERIAL PRIMARY KEY,
 	"name" TEXT NOT NULL UNIQUE,
-  "apiKey" TEXT NOT NULL
+  "apiKey" TEXT
 );
 
 CREATE TABLE employees (
@@ -12,7 +12,8 @@ CREATE TABLE employees (
   "companyId" INTEGER REFERENCES companies("id")
 );
 
-CREATE TYPE CARDS_TYPE AS ENUM ('credit', 'debit');
+CREATE TYPE CARDS_TYPE AS ENUM
+('groceries', 'restaurants', 'transport', 'education', 'health');
 
 CREATE TABLE cards (
   "id" SERIAL PRIMARY KEY,
@@ -21,20 +22,17 @@ CREATE TABLE cards (
   "cardholderName" TEXT NOT NULL,
   "securityCode" TEXT NOT NULL,
   "expirationDate" TEXT NOT NULL,
-  "password" TEXT NOT NULL,
+  "password" TEXT,
   "isVirtual" BOOLEAN NOT NULL DEFAULT false,
-  "originalCardId" INTEGER NOT NULL REFERENCES cards("id"),
+  "originalCardId" INTEGER REFERENCES cards("id"),
   "isBlocked" BOOLEAN NOT NULL DEFAULT false,
   "type" CARDS_TYPE NOT NULL
 );
 
-CREATE TYPE BUSINESSES_TYPE AS ENUM
-('groceries', 'restaurants', 'transport', 'education', 'health');
-
 CREATE TABLE businesses (
   "id" SERIAL PRIMARY KEY,
   "name" TEXT NOT NULL UNIQUE,
-  "type" BUSINESSES_TYPE NOT NULL
+  "type" CARDS_TYPE NOT NULL
 );
 
 CREATE TABLE payments (

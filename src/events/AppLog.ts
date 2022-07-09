@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import ITypes from "../interfaces/index";
+import ITypes from "../interfaces/index.js";
 
 const types: ITypes = {
   Middleware: 'magenta',
@@ -18,12 +18,15 @@ const AppLog = (
     | 'Server'
     | 'Service'
     | 'Error',
-  text: string
+  text: string | any
 ) => {
   const color = types[type] as 'green' | 'magenta' | 'blue' | 'yellow' | 'cyan' | 'red';
   console.log(
     chalk.bold[ color ](`[${ type }] ${ text }`)
   );
+  if( text.detail ) {
+    console.log( text.detail );
+  }
 }
 
 export default AppLog;
