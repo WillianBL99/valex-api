@@ -55,7 +55,11 @@ export async function create( cardCreateData: CreateCard ) {
   const expirationTime = 5;
   const expiryYear = ( currentYear + expirationTime ) % 100;
 
-  const expirationDate = `${currentMonth}/${ expiryYear }`;
+  const padStartZero = ( value: number ) => {
+    return String(value).padStart(2,"0");
+  }
+
+  const expirationDate = `${ padStartZero(currentMonth) }/${ padStartZero(expiryYear) }`;
 
 
   const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
