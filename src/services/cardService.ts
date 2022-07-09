@@ -15,6 +15,29 @@ export interface CreateCard {
 export async function create( cardCreateData: CreateCard ) {
   const { cpf, companyId, type } = cardCreateData;
 
+  const { id: employeeId, fullName } = await findEmployee( cpf, companyId );
+  await isDifferentTypeCard( type, employeeId );
+
+  const number = faker.unique( faker.finance.creditCardNumber );
+  const cardholderName = setCardName( fullName );
+  const expirationDate = setExpirationDate();
+  const securityCode = setSecuritCodeCard();
+
+  const cardInsertData : cardRepository.CardInsertData = {
+    type,
+    number,
+    employeeId,
+    securityCode,
+    cardholderName,
+    expirationDate,
+    isBlocked: true,
+    isVirtual: false
+  };
+
+  await cardRepository.insert( cardInsertData );
+}
+
+async function findEmployee( cpf: string, companyId: number ) {
   const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
 
   if( !employee ) {
@@ -23,25 +46,30 @@ export async function create( cardCreateData: CreateCard ) {
       404,
       "Employee not found",
       "Make sure this employee is employeed by this company"
-    )
+    );
   }
 
-  const findCardSameType = await cardRepository.findByTypeAndEmployeeId( type, employee.id );
+  return employee;
+}
+
+async function isDifferentTypeCard( type: TransactionTypes , employeeId: number ) {
+  const findCardSameType = await cardRepository.findByTypeAndEmployeeId( type, employeeId );
   if( findCardSameType ) {
     throw new AppError(
       "there was a conflict creating this card type",
       409,
       "there was a conflict creating this card type",
       "make sure this employee does not have a card of the same type"
-    )
+    );
   }
+}
 
-  const cardNumber = faker.unique( faker.finance.creditCardNumber );
-
+function setCardName( fullName: string ) {
   const nameLongerThanThreeLetters = /(\w){3,}/g;
-  const splitName = employee.fullName.match( nameLongerThanThreeLetters );
+  const splitName = fullName.match( nameLongerThanThreeLetters );
 
   const containMiddleName = splitName && splitName?.length >= 3;
+
   if( containMiddleName ) {
     for( let i = 1; i < splitName.length - 1; i++ ) {
       splitName[i] = splitName[i].slice(0,1);
@@ -50,6 +78,10 @@ export async function create( cardCreateData: CreateCard ) {
 
   const cardName = splitName?.join(" ").toUpperCase() || "";
 
+  return cardName;
+}
+
+function setExpirationDate() {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth();
   const expirationTime = 5;
@@ -61,20 +93,12 @@ export async function create( cardCreateData: CreateCard ) {
 
   const expirationDate = `${ padStartZero(currentMonth) }/${ padStartZero(expiryYear) }`;
 
+  return expirationDate;
+}
 
+function setSecuritCodeCard() {
   const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
   const securityCode = cryptr.encrypt( faker.finance.creditCardCVV() );
 
-  const cardInsertData : cardRepository.CardInsertData = {
-    type,
-    securityCode,
-    expirationDate,
-    number: cardNumber,
-    isBlocked: true,
-    isVirtual: false,
-    employeeId: employee.id,
-    cardholderName: cardName
-  };
-
-  await cardRepository.insert( cardInsertData );
+  return securityCode;
 }
