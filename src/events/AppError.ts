@@ -10,13 +10,12 @@ function ExceptionHandler(
   _next: NextFunction
 ) {
   const { log, statusCode, message, detail } = error;
-
-  AppLog('Error', log);
+  
+  AppLog('Error', log || error );
   return error instanceof AppError
     ? res.status(statusCode).send({ message, detail })
     : res.status(500).send({
-      message: "Internal server error",
-      detail: error
+      message: "Internal server error"
     });
 }
 

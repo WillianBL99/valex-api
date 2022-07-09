@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import AppError from "../config/error.js";
 import * as companyRepository from "../repositories/companyRepository.js";
 
-export async function apiKeyHeaderValidation( req: Request, _res: Response, next: NextFunction ) {
+export async function apiKeyHeaderValidation( req: Request, res: Response, next: NextFunction ) {
   const apiKey = req.header("x-api-key");
 
   if( !apiKey ) {
@@ -23,6 +23,8 @@ export async function apiKeyHeaderValidation( req: Request, _res: Response, next
       "Make sure you provide a valid api key"
     )
   }
+
+  res.locals.companyData = { companyId: company.id };
 
   next();
 }

@@ -7,7 +7,7 @@ import Cryptr from "cryptr";
 import "./../config/setup.js";
 
 export interface CreateCard {
-  cpf: number,
+  cpf: string,
   companyId: number,
   type: TransactionTypes
 }
