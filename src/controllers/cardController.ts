@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import AppError from "../config/error.js";
 import { TransactionTypes } from "../repositories/cardRepository.js";
 import * as cardService from "../services/cardService.js";
+import { checkCardId } from "../services/checkCardIdService.js";
 
 export interface CreateCardBody {
   cpf: string,
@@ -29,17 +29,9 @@ export async function createCard( req: Request, res: Response ) {
 }
 
 export async function activeCard( req: Request, res: Response ) {
-  const cardId = parseInt( req.params.id );
   const { cvv, password } : ActiveCardBody = req.body;
 
-  if( !cardId || isNaN( cardId ) ) {
-    throw new AppError(
-      "Bad body request",
-      422,
-      "Invalid card id",
-      "Make sure to send a correct body request"
-    )
-  }
+  const cardId = checkCardId( req.params.id );
 
   const securityCode = cvv.toString();
   await cardService.active( cardId, securityCode, password );
