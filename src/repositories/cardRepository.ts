@@ -1,3 +1,4 @@
+import Sqlstring from "sqlstring";
 import connection from "../config/database.js";
 import { mapObjectToUpdateQuery } from "../utils/sqlUtils.js";
 
@@ -20,6 +21,10 @@ export interface Card {
   originalCardId?: number;
   isBlocked: boolean;
   type: TransactionTypes;
+}
+
+export interface CardBalance {
+  balance: Number
 }
 
 export type CardInsertData = Omit<Card, "id">;
@@ -117,6 +122,25 @@ export async function update(id: number, cardData: CardUpdateData) {
   `,
     [id, ...cardValues]
   );
+}
+
+export async function balance( id: number ) {
+  const paymentsAmount = `
+    SELECT COALESCE(SUM(p.amount),0)
+    FROM payments p
+    WHERE p."cardId"=${Sqlstring.escape( id )}
+  `
+  const rechargesAmount = `COALESCE(SUM(r.amount),0)`;
+
+  const { rows } = await connection.query<CardBalance, [number]>(
+    `SELECT (${rechargesAmount} - (${paymentsAmount})) AS balance
+    FROM recharges r
+    WHERE r."cardId"=$1`,
+    [ id ]
+  );
+
+  const [ balance ] = rows;
+  return balance;
 }
 
 export async function remove(id: number) {

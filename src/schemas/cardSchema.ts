@@ -1,4 +1,5 @@
 import Joi from "joi";
+import { regex } from "./regexForSchemas.js";
 
 const cardTypes = ["groceries", "restaurants", "transport", "education", "health"];
 export const cardSchema = Joi.object({
@@ -6,8 +7,7 @@ export const cardSchema = Joi.object({
   cpf: Joi.string().max(11).min(11).required()
 });
 
-const cvvRegex = /(\d){4}/;
 export const cardActiveSchema = Joi.object({
-  cvv: Joi.string().max(3).min(3).required(),
-  password: Joi.string().regex( cvvRegex ).required()
+  cvv: Joi.string().regex( regex.cvv ).required(),
+  password: Joi.string().regex( regex.password ).required()
 })

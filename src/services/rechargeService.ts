@@ -23,7 +23,7 @@ export async function recharge( rechardData: RechargeCard ) {
   await rechargeRepository.insert({ amount, cardId })
 }
 
-function cardIsUnlocked( card: Card ) {
+export function cardIsUnlocked( card: Card ) {
   if( card.isBlocked ) {
     throw new AppError(
       "Card blocked",
