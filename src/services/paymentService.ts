@@ -16,7 +16,22 @@ export interface PaymentCard {
 
 export async function buy( paymentCardData: PaymentCard ) {
   const { amount, businessId, cardId, cvv } = paymentCardData;
+  
   const card = await findCard( cardId );
+
+  cardIsActive( card );
+  cardIsValid( card );
+  cardIsUnlocked( card );
+  await verifySecuritConde( card, cvv );
+  await hasEnoughBalance( cardId, amount );
+
+  const business = await findBusiness( businessId );
+  areTheSameType( card, business );
+
+  await paymentRepository.insert({ amount, businessId, cardId });
+}
+
+function cardIsActive( card: Card ) {
   if( !card.password ) {
     throw new AppError(
       "Card is disabled",
@@ -25,10 +40,20 @@ export async function buy( paymentCardData: PaymentCard ) {
       "Active card before"
     );
   }
-  cardIsValid( card );
-  cardIsUnlocked( card );
-  await verifySecuritConde( card, cvv );
+}
 
+function areTheSameType( card: Card, business: Business) {
+  if( card.type !== business.type ) {
+    throw new AppError(
+      "Card is different type to business",
+      409,
+      "Card is different type to business",
+      "Make sure you pay with a correct card"
+    );
+  }
+}
+
+async function findBusiness( businessId: number ) {
   const business = await businessRepository.findById( businessId );
   if( !business ) {
     throw new AppError(
@@ -39,8 +64,10 @@ export async function buy( paymentCardData: PaymentCard ) {
     );
   }
 
-  areTheSameType( card, business );
+  return business;
+}
 
+async function hasEnoughBalance( cardId: number, amount: number ) {
   const { balance } = await cardRepository.balance( cardId );
   if( balance < amount ) {
     throw new AppError(
@@ -48,19 +75,6 @@ export async function buy( paymentCardData: PaymentCard ) {
       409,
       "Don't have enough balance",
       "Check your balance"
-    );
-  }
-
-  await paymentRepository.insert({ amount, businessId, cardId });
-}
-
-function areTheSameType( card: Card, business: Business) {
-  if( card.type !== business.type ) {
-    throw new AppError(
-      "Card is different type to business",
-      409,
-      "Card is different type to business",
-      "Make sure you pay with a correct card"
     );
   }
 }
