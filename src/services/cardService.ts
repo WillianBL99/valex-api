@@ -64,8 +64,8 @@ export async function active( cardId: number, securityCode: string, password: st
       "This card is expired. Unauthorized update."
     );
   }
-
-  if( !card.password ) {
+  
+  if( card.password ) {
     throw new AppError(
       "Card already has password",
       409,
@@ -87,7 +87,12 @@ export async function active( cardId: number, securityCode: string, password: st
   const salt = bcrypt.genSaltSync( saltRounds );
   const hashedPassword =  bcrypt.hashSync( password, salt );
 
-  
+  const updateCardData: cardRepository.CardUpdateData = {
+    password: hashedPassword,
+    isBlocked: false
+  }
+
+  await cardRepository.update( cardId, updateCardData );
 }
 
 async function findEmployee( cpf: string, companyId: number ) {
@@ -151,6 +156,8 @@ function setExpirationDate() {
 
 function setSecuritCodeCard() {
   const securityCode = cryptr.encrypt( faker.finance.creditCardCVV() );
+  //FIXEME: Retirar. Implementado para testar atualização do cartao
+  console.log( cryptr.decrypt( securityCode ) );
 
   return securityCode;
 }

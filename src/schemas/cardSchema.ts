@@ -6,7 +6,8 @@ export const cardSchema = Joi.object({
   cpf: Joi.string().max(11).min(11).required()
 });
 
+const cvvRegex = /(\d){4}/;
 export const cardActiveSchema = Joi.object({
   cvv: Joi.string().max(3).min(3).required(),
-  password: Joi.number().max(4).min(4).required()
+  password: Joi.string().regex( cvvRegex ).required()
 })

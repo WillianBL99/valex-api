@@ -7,6 +7,6 @@ import * as cardController from "../controllers/cardController.js";
 const cardRoute = Router();
 
 cardRoute.post( "/card", validateSchema( cardSchema ), apiKeyHeaderValidation, cardController.createCard );
-cardRoute.post( "/card/:id/active", validateSchema( cardActiveSchema ), )
+cardRoute.post( "/card/:id/active", validateSchema( cardActiveSchema ), cardController.activeCard );
 
 export default cardRoute;
