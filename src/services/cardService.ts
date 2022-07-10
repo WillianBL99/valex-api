@@ -162,7 +162,7 @@ async function hasNoPassword( card: cardRepository.Card ) {
   }
 }
 
-async function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
+export async function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
   if( internalCryptr.decrypt( card.securityCode ) !== securityCode ) {
     throw new AppError(
       "Access danied",
