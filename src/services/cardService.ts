@@ -1,10 +1,13 @@
-import AppError from "../config/error.js";
-import { TransactionTypes } from "../repositories/cardRepository.js";
-import * as employeeRepository from "../repositories/employeeRepository.js";
-import * as cardRepository from "../repositories/cardRepository.js";
 import { faker } from "@faker-js/faker";
-import Cryptr from "cryptr";
+import { TransactionTypes } from "../repositories/cardRepository.js";
+import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
+
+import * as cardRepository from "../repositories/cardRepository.js";
+import * as employeeRepository from "../repositories/employeeRepository.js";
+
+import AppError from "../config/error.js";
 import "./../config/setup.js";
+import { internalBcrypt, internalCryptr } from "../utils/encript.js";
 
 export interface CreateCard {
   cpf: string,
@@ -37,7 +40,22 @@ export async function create( cardCreateData: CreateCard ) {
   await cardRepository.insert( cardInsertData );
 }
 
-async function findEmployee( cpf: string, companyId: number ) {
+export async function active( cardId: number, securityCode: string, password: string ) {
+  const card = await findCard( cardId );
+  await cardIsValid( card );
+  await hasNoPassword( card );
+  await verifySecuritConde( card, securityCode );
+  const hashedPassword = await internalBcrypt.hashValue( password );
+
+  const updateCardData: cardRepository.CardUpdateData = {
+    password: hashedPassword,
+    isBlocked: false
+  }
+
+  await cardRepository.update( cardId, updateCardData );
+}
+
+export async function findEmployee( cpf: string, companyId: number ) {
   const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
 
   if( !employee ) {
@@ -97,8 +115,60 @@ function setExpirationDate() {
 }
 
 function setSecuritCodeCard() {
-  const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
-  const securityCode = cryptr.encrypt( faker.finance.creditCardCVV() );
+  const securityCode = internalCryptr.encrypt(
+    faker.finance.creditCardCVV()
+  );
 
   return securityCode;
+}
+
+export async function findCard( cardId: number ) {
+  const card = await cardRepository.findById( cardId );
+  if( !card ) {
+    throw new AppError(
+      "Card not found",
+      404,
+      "Card not found",
+      "Make sure to send a valid card data"
+    );
+  }
+
+  return card;
+}
+
+export async function cardIsValid( card: cardRepository.Card ) {
+  const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
+
+  const { month, year } = parseDataToInt( expiryMonth, expiryYear );
+  const { currentMonth, currentYear } = getCurrentData();
+  if( currentMonth > month && currentYear >= year ) {
+    throw new AppError(
+      "Card is expired",
+      409,
+      "Card is expired",
+      "This card is expired. Unauthorized update."
+    );
+  }
+}
+
+async function hasNoPassword( card: cardRepository.Card ) {
+  if( card.password ) {
+    throw new AppError(
+      "Card already has password",
+      409,
+      "Card already has password",
+      "This card already has password. Unauthorized update."
+    );
+  }
+}
+
+async function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
+  if( internalCryptr.decrypt( card.securityCode ) !== securityCode ) {
+    throw new AppError(
+      "Access danied",
+      401,
+      "Access denied",
+      "Access denied to this card"
+    );
+  }
 }
