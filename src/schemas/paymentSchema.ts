@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { regex } from "./regexForSchemas";
+import { regex } from "./regexForSchemas.js";
 
 export const paymentSchema = Joi.object({
   businessId: Joi.number().integer().required(),

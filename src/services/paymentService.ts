@@ -2,10 +2,20 @@ import AppError from "../config/error.js";
 import { cardIsValid, findCard, verifySecuritConde } from "./cardService.js";
 import { cardIsUnlocked } from "./rechargeService.js";
 import * as businessRepository from "../repositories/businessRepository.js";
+import * as cardRepository from "../repositories/cardRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js";
 import { Card } from "../repositories/cardRepository.js";
 import { Business } from "../repositories/businessRepository.js";
 
-export async function buy( cardId: number, cvv: string, businessId: number, amount: number ) {
+export interface PaymentCard {
+  cardId: number,
+  cvv: string,
+  businessId: number,
+  amount: number
+}
+
+export async function buy( paymentCardData: PaymentCard ) {
+  const { amount, businessId, cardId, cvv } = paymentCardData;
   const card = await findCard( cardId );
   if( !card.password ) {
     throw new AppError(
@@ -30,7 +40,18 @@ export async function buy( cardId: number, cvv: string, businessId: number, amou
   }
 
   areTheSameType( card, business );
-  // criar função para retorna o montante atual do cartão
+
+  const { balance } = await cardRepository.balance( cardId );
+  if( balance < amount ) {
+    throw new AppError(
+      "Don't have enough balance",
+      409,
+      "Don't have enough balance",
+      "Check your balance"
+    );
+  }
+
+  await paymentRepository.insert({ amount, businessId, cardId });
 }
 
 function areTheSameType( card: Card, business: Business) {

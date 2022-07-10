@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { validateSchema } from "../middlewares/validateSchemaMiddleware";
-import { paymentSchema } from "../schemas/paymentSchema";
+import { validateSchema } from "../middlewares/validateSchemaMiddleware.js";
+import { paymentSchema } from "../schemas/paymentSchema.js";
 import * as paymentController from "../controllers/paymentController.js";
 
 const paymentRoute = Router();
