@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AppError from "../config/error.js";
-import * as cardRepository from "../services/cardService.js";
+import * as cardService from "../services/cardService.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 
 export async function rechargeCard( req: Request, res: Response ) {
@@ -16,7 +16,7 @@ export async function rechargeCard( req: Request, res: Response ) {
     );
   }
 
-  const card = await cardRepository.findCard( cardId );
+  const card = await cardService.findCard( cardId );
   if( card.isBlocked ) {
     throw new AppError(
       "Card blocked",
@@ -25,4 +25,6 @@ export async function rechargeCard( req: Request, res: Response ) {
       "This card is blocked. Operation unauthorized."
     );
   }
+
+  await cardService.cardIsValid( card );
 }
