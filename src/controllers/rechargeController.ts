@@ -41,4 +41,6 @@ export async function rechargeCard( req: Request, res: Response ) {
   await cardService.cardIsValid( card );
 
   await rechargeRepository.insert({ amount, cardId })
+
+  res.sendStatus( 201 );
 }
