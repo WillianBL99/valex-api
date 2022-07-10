@@ -55,10 +55,7 @@ export async function active( cardId: number, securityCode: string, password: st
   await cardRepository.update( cardId, updateCardData );
 }
 
-
-// Private functions
-
-async function findEmployee( cpf: string, companyId: number ) {
+export async function findEmployee( cpf: string, companyId: number ) {
   const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
 
   if( !employee ) {
