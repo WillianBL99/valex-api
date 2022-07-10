@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import AppError from "../config/error";
+import AppError from "../config/error.js";
+import * as cardRepository from "../services/cardService.js";
 
 export async function rechargeCard( req: Request, res: Response ) {
   const { companyId } = res.locals.companyData;
@@ -13,4 +14,6 @@ export async function rechargeCard( req: Request, res: Response ) {
       "Make sure to send a correct body request"
     )
   }
+
+  const card = await cardRepository.findCard( cardId );
 }

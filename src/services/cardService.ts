@@ -125,7 +125,7 @@ function setSecuritCodeCard() {
   return securityCode;
 }
 
-async function findCard( cardId: number ) {
+export async function findCard( cardId: number ) {
   const card = await cardRepository.findById( cardId );
   if( !card ) {
     throw new AppError(
@@ -139,7 +139,7 @@ async function findCard( cardId: number ) {
   return card;
 }
 
-async function cardIsValid( card: cardRepository.Card ) {
+export async function cardIsValid( card: cardRepository.Card ) {
   const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
 
   const { month, year } = parseDataToInt( expiryMonth, expiryYear );
