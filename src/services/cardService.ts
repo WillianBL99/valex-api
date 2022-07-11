@@ -75,6 +75,16 @@ export async function blockCard( cardId:number, password: string ) {
   await cardRepository.update( cardId, cardBlockData );
 }
 
+export async function unlockCard( cardId:number, password: string ) {
+  const card = await findCard( cardId );
+  cardIsValid( card );
+  verifyPassword( card, password );
+  cardIsBlockd( card );
+  
+  const cardBlockData = { isBlocked: false };
+  await cardRepository.update( cardId, cardBlockData );
+}
+
 export async function findEmployee( cpf: string, companyId: number ) {
   const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
 
@@ -240,4 +250,15 @@ async function handleListCardRequest( employeeId: number, passwords: [string]) {
   }
 
   return cards;
+}
+
+function cardIsBlockd( card: cardRepository.Card ) {
+  if( !card.isBlocked ) {
+    throw new AppError(
+      "Card alread unlocked",
+      401,
+      "Card alread unlocked",
+      "This card alread unlocked. Operation unauthorized."
+    );
+  }
 }

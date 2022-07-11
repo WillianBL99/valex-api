@@ -18,7 +18,7 @@ export async function recharge( rechardData: RechargeCard ) {
   const card = await cardService.findCard( cardId );
   cardIsUnlocked( card );
   employeeIsEployed( card, companyId );
-  await cardService.cardIsValid( card );
+  cardService.cardIsValid( card );
   
   await rechargeRepository.insert({ amount, cardId })
 }

@@ -61,3 +61,11 @@ export async function blockCard( req: Request, res: Response ) {
   await cardService.blockCard( cardId, password );
   res.sendStatus( 200 );
 }
+
+export async function unlock( req: Request, res: Response ) {
+  const { password }: { password: string } = req.body;
+  const cardId = checkCardId( req.params.id );
+
+  await cardService.unlockCard( cardId, password );
+  res.sendStatus( 200 );
+}
