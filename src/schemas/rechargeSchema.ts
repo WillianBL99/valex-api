@@ -1,5 +1,4 @@
 import Joi from "joi";
+import { amount } from "./porpertiesSchema";
 
-export const rechargeSchema = Joi.object({
-  amount: Joi.number().integer().min(1).required()
-})
+export const rechargeSchema = Joi.object({ amount });
