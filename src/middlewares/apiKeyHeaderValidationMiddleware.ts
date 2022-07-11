@@ -18,7 +18,7 @@ export async function apiKeyHeaderValidation( req: Request, res: Response, next:
   if( !company ) {
     throw new AppError(
       "Api key not found",
-      422,
+      404,
       "Api key not found",
       "Make sure you provide a valid api key"
     )
