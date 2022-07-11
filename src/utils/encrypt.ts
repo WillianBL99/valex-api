@@ -1,6 +1,6 @@
 
 import Cryptr from "cryptr";
-import bcrypt from "bcrypt";
+import bcrypt, { compareSync } from "bcrypt";
 
 const cryptr = new Cryptr( "" + process.env.SECRET_CRYPTR );
 
@@ -16,7 +16,8 @@ function encrypt( value: string ) {
 }
 
 export const internalBcrypt = {
-  hashValue
+  hashValue,
+  compareSync
 }
 
 async function hashValue( value: string ) {

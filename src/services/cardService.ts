@@ -1,13 +1,14 @@
+
 import { faker } from "@faker-js/faker";
 import { TransactionTypes } from "../repositories/cardRepository.js";
 import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
 
-import * as cardRepository from "../repositories/cardRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
+import * as cardRepository from "../repositories/cardRepository.js";
 
 import AppError from "../config/error.js";
 import "./../config/setup.js";
-import { internalBcrypt, internalCryptr } from "../utils/encript.js";
+import { internalBcrypt, internalCryptr } from "../utils/encrypt.js";
 
 export interface CreateCard {
   cpf: string,
@@ -53,6 +54,33 @@ export async function active( cardId: number, securityCode: string, password: st
   }
 
   await cardRepository.update( cardId, updateCardData );
+}
+
+export async function findCardsByEmployeeIdAndPasswords( employeeId: number, passwords: [string]) {
+  const passwordAux = passwords;
+  let cards: cardRepository.CardList[] = [];
+
+  const employee = await employeeRepository.findById( employeeId );
+  if( !employee ) {
+    throw new AppError(
+      "Employee not found",
+      404,
+      "Employee not found",
+      "Make sure this employee is employeed by this company"
+    );
+  }
+
+  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
+  for( let card of cardsResponse ) {
+    for(let i = 0; i < passwordAux.length; i++){
+      if(internalBcrypt.compareSync(passwordAux[i], card.password )){
+        cards.push(card);
+        passwordAux.splice(i,1);
+      }
+    }
+  }
+
+  return cards;
 }
 
 export async function findEmployee( cpf: string, companyId: number ) {
