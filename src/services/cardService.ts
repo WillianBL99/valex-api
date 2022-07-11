@@ -45,8 +45,8 @@ export async function create( cardCreateData: CreateCard ) {
 export async function active( cardId: number, securityCode: string, password: string ) {
   const card = await findCard( cardId );
   cardIsValid( card );
-  hasNoPassword( card );
   verifySecuritConde( card, securityCode );
+  hasNoPassword( card );
   const hashedPassword = await internalBcrypt.hashValue( password );
 
   const updateCardData: cardRepository.CardUpdateData = {
@@ -72,6 +72,16 @@ export async function blockCard( cardId:number, password: string ) {
   cardIsUnlocked( card );
   
   const cardBlockData = { isBlocked: true };
+  await cardRepository.update( cardId, cardBlockData );
+}
+
+export async function unlockCard( cardId:number, password: string ) {
+  const card = await findCard( cardId );
+  cardIsValid( card );
+  verifyPassword( card, password );
+  cardIsBlockd( card );
+  
+  const cardBlockData = { isBlocked: false };
   await cardRepository.update( cardId, cardBlockData );
 }
 
@@ -240,4 +250,15 @@ async function handleListCardRequest( employeeId: number, passwords: [string]) {
   }
 
   return cards;
+}
+
+function cardIsBlockd( card: cardRepository.Card ) {
+  if( !card.isBlocked ) {
+    throw new AppError(
+      "Card alread unlocked",
+      401,
+      "Card alread unlocked",
+      "This card alread unlocked. Operation unauthorized."
+    );
+  }
 }
