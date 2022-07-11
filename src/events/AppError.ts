@@ -10,6 +10,7 @@ function ExceptionHandler(
   _next: NextFunction
 ) {
   const { log, statusCode, message, detail } = error;
+  
   AppLog('Error', log || error );
   return error instanceof AppError
     ? res.status(statusCode).send({ message, detail })

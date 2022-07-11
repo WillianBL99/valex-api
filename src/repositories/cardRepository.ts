@@ -23,6 +23,14 @@ export interface Card {
   type: TransactionTypes;
 }
 
+export interface CardList {
+  number: string,
+  cardholderName: string,
+  expirationDate: string,
+  securityCode: string,
+  password: string
+}
+
 export interface CardBalance {
   balance: Number
 }
@@ -42,6 +50,22 @@ export async function findById(id: number) {
   );
 
   return result.rows[0];
+}
+
+export async function findActiveCardByEmployeeId( employId: number) {
+  const result = await connection.query<CardList, [number]>(
+    `SELECT 
+      number,
+      "cardholderName",
+      "expirationDate",
+      "securityCode",
+      "password"
+    FROM cards 
+    WHERE "employeeId"=$1 AND password IS NOT NULL`,
+    [ employId ]
+  );
+
+  return result.rows;
 }
 
 export async function findByTypeAndEmployeeId(

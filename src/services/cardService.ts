@@ -1,13 +1,15 @@
+
 import { faker } from "@faker-js/faker";
 import { TransactionTypes } from "../repositories/cardRepository.js";
 import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
 
-import * as cardRepository from "../repositories/cardRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
+import * as cardRepository from "../repositories/cardRepository.js";
 
 import AppError from "../config/error.js";
 import "./../config/setup.js";
-import { internalBcrypt, internalCryptr } from "../utils/encript.js";
+import { internalBcrypt, internalCryptr } from "../utils/encrypt.js";
+import { cardIsUnlocked } from "./rechargeService.js";
 
 export interface CreateCard {
   cpf: string,
@@ -42,9 +44,9 @@ export async function create( cardCreateData: CreateCard ) {
 
 export async function active( cardId: number, securityCode: string, password: string ) {
   const card = await findCard( cardId );
-  await cardIsValid( card );
-  await hasNoPassword( card );
-  await verifySecuritConde( card, securityCode );
+  cardIsValid( card );
+  hasNoPassword( card );
+  verifySecuritConde( card, securityCode );
   const hashedPassword = await internalBcrypt.hashValue( password );
 
   const updateCardData: cardRepository.CardUpdateData = {
@@ -53,6 +55,24 @@ export async function active( cardId: number, securityCode: string, password: st
   }
 
   await cardRepository.update( cardId, updateCardData );
+}
+
+export async function findCardsByEmployeeIdAndPasswords( employeeId: number, passwords: [string]) {
+
+  await employeeIsEmployed( employeeId );
+  const cards = await handleListCardRequest( employeeId, passwords );
+
+  return cards;
+}
+
+export async function blockCard( cardId:number, password: string ) {
+  const card = await findCard( cardId );
+  cardIsValid( card );
+  verifyPassword( card, password );
+  cardIsUnlocked( card );
+  
+  const cardBlockData = { isBlocked: true };
+  await cardRepository.update( cardId, cardBlockData );
 }
 
 export async function findEmployee( cpf: string, companyId: number ) {
@@ -136,7 +156,7 @@ export async function findCard( cardId: number ) {
   return card;
 }
 
-export async function cardIsValid( card: cardRepository.Card ) {
+export function cardIsValid( card: cardRepository.Card ) {
   const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
 
   const { month, year } = parseDataToInt( expiryMonth, expiryYear );
@@ -149,9 +169,10 @@ export async function cardIsValid( card: cardRepository.Card ) {
       "This card is expired. Unauthorized update."
     );
   }
+  return;
 }
 
-async function hasNoPassword( card: cardRepository.Card ) {
+function hasNoPassword( card: cardRepository.Card ) {
   if( card.password ) {
     throw new AppError(
       "Card already has password",
@@ -162,7 +183,7 @@ async function hasNoPassword( card: cardRepository.Card ) {
   }
 }
 
-export async function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
+export function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
   if( internalCryptr.decrypt( card.securityCode ) !== securityCode ) {
     throw new AppError(
       "Access danied",
@@ -171,4 +192,52 @@ export async function verifySecuritConde( card: cardRepository.Card, securityCod
       "Access denied to this card"
     );
   }
+}
+
+export function verifyPassword( card: cardRepository.Card, password: string ) {
+  const hashedPassword = card.password as string;
+
+  if( !internalBcrypt.compareSync( password, hashedPassword ) ) {
+    throw new AppError(
+      "Access danied",
+      401,
+      "Access denied",
+      "Access denied to this card"
+    );
+  }
+}
+
+async function employeeIsEmployed( employeeId: number ) {
+  const employee = await employeeRepository.findById( employeeId );
+  if( !employee ) {
+    throw new AppError(
+      "Employee not found",
+      404,
+      "Employee not found",
+      "Make sure this employee is employeed by this company"
+    );
+  }
+}
+
+async function handleListCardRequest( employeeId: number, passwords: [string]) {
+  let cards: cardRepository.CardList[] = [];
+  const passwordAux = [...passwords];
+
+  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
+  
+  for( let card of cardsResponse ) {
+    for(let i = 0; i < passwordAux.length; i++){
+      const approvedPassword = internalBcrypt.compareSync(
+        passwordAux[i], card.password
+      );
+
+      if( approvedPassword ){
+        const securityCode = internalCryptr.decrypt( card.securityCode );
+        cards.push({...card, securityCode });
+        passwordAux.splice(i,1);
+      }
+    }
+  }
+
+  return cards;
 }

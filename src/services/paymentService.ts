@@ -22,7 +22,7 @@ export async function buy( paymentCardData: PaymentCard ) {
   cardIsActive( card );
   cardIsValid( card );
   cardIsUnlocked( card );
-  await verifySecuritConde( card, cvv );
+  verifySecuritConde( card, cvv );
   await hasEnoughBalance( cardId, amount );
 
   const business = await findBusiness( businessId );
