@@ -45,8 +45,8 @@ export async function create( cardCreateData: CreateCard ) {
 export async function active( cardId: number, securityCode: string, password: string ) {
   const card = await findCard( cardId );
   cardIsValid( card );
-  hasNoPassword( card );
   verifySecuritConde( card, securityCode );
+  hasNoPassword( card );
   const hashedPassword = await internalBcrypt.hashValue( password );
 
   const updateCardData: cardRepository.CardUpdateData = {
