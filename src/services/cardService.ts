@@ -57,28 +57,9 @@ export async function active( cardId: number, securityCode: string, password: st
 }
 
 export async function findCardsByEmployeeIdAndPasswords( employeeId: number, passwords: [string]) {
-  const passwordAux = passwords;
-  let cards: cardRepository.CardList[] = [];
 
-  const employee = await employeeRepository.findById( employeeId );
-  if( !employee ) {
-    throw new AppError(
-      "Employee not found",
-      404,
-      "Employee not found",
-      "Make sure this employee is employeed by this company"
-    );
-  }
-
-  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
-  for( let card of cardsResponse ) {
-    for(let i = 0; i < passwordAux.length; i++){
-      if(internalBcrypt.compareSync(passwordAux[i], card.password )){
-        cards.push(card);
-        passwordAux.splice(i,1);
-      }
-    }
-  }
+  await employeeIsEmployed( employeeId );
+  const cards = await handleListCardRequest( employeeId, passwords );
 
   return cards;
 }
@@ -199,4 +180,38 @@ export async function verifySecuritConde( card: cardRepository.Card, securityCod
       "Access denied to this card"
     );
   }
+}
+
+async function employeeIsEmployed( employeeId: number ) {
+  const employee = await employeeRepository.findById( employeeId );
+  if( !employee ) {
+    throw new AppError(
+      "Employee not found",
+      404,
+      "Employee not found",
+      "Make sure this employee is employeed by this company"
+    );
+  }
+}
+
+async function handleListCardRequest( employeeId: number, passwords: [string]) {
+  let cards: cardRepository.CardList[] = [];
+  const passwordAux = [...passwords];
+
+  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
+
+  for( let card of cardsResponse ) {
+    for(let i = 0; i < passwordAux.length; i++){
+      const approvedPassword = internalBcrypt.compareSync(
+        passwordAux[i], card.password
+      );
+
+      if( approvedPassword ){
+        cards.push(card);
+        passwordAux.splice(i,1);
+      }
+    }
+  }
+
+  return cards;
 }
