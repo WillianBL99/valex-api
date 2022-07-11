@@ -1,19 +1,11 @@
 import Joi from "joi";
-import { regex } from "./regexForSchemas.js";
-const password = Joi.string().regex( regex.password ).required();
+import { cpf, cvv, employeeId, password, type } from "./porpertiesSchema.js";
 
-const cardTypes = ["groceries", "restaurants", "transport", "education", "health"];
-export const cardSchema = Joi.object({
-  type: Joi.string().valid(...cardTypes).required(),
-  cpf: Joi.string().max(11).min(11).required()
-});
-
-export const cardActiveSchema = Joi.object({
-  cvv: Joi.string().regex( regex.cvv ).required(),
-  password: password
-});
+export const blockCardSchema = Joi.object({ password });
+export const cardSchema = Joi.object({ type, cpf });
+export const cardActiveSchema = Joi.object({ cvv,password });
 
 export const infoCards = Joi.object({
-  passwords: Joi.array().items( password ).required(),
-  employeeId: Joi.number().integer().required()
-})
+  employeeId,
+  passwords: Joi.array().items( password ).required()
+});
