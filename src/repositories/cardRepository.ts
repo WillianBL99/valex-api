@@ -61,7 +61,7 @@ export async function findActiveCardByEmployeeId( employId: number) {
       "securityCode",
       "password"
     FROM cards 
-    WHERE id=$1 AND password IS NOT NULL`,
+    WHERE "employeeId"=$1 AND password IS NOT NULL`,
     [ employId ]
   );
 

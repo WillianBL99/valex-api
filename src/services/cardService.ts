@@ -199,7 +199,7 @@ async function handleListCardRequest( employeeId: number, passwords: [string]) {
   const passwordAux = [...passwords];
 
   const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
-
+  console.log(cardsResponse);
   for( let card of cardsResponse ) {
     for(let i = 0; i < passwordAux.length; i++){
       const approvedPassword = internalBcrypt.compareSync(
