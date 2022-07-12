@@ -17,6 +17,8 @@ import * as employeeRepository from "../repositories/employeeRepository.js";
 
 import AppError from "../config/error.js";
 import "./../config/setup.js";
+import * as rechargeRepository from "../repositories/rechargeRepository.js";
+import * as paymentRepository from "../repositories/paymentRepository.js";
 
 export async function create( cardCreateData: CreateCard ) {
   const { cpf, companyId, type } = cardCreateData;
@@ -56,6 +58,15 @@ export async function active( cardId: number, securityCode: string, password: st
   }
 
   await cardRepository.update( cardId, updateCardData );
+}
+
+export async function balanceAndTransactions( cardId: number ) {
+  await validationServer.findCard( cardId );
+  const { balance } = await cardRepository.balance( cardId );
+  const transactions = await paymentRepository.findByCardId( cardId );
+  const recharges = await rechargeRepository.findByCardId( cardId );
+
+  return { balance, transactions, recharges };
 }
 
 export async function findCardsByEmployeeIdAndPasswords( employeeId: number, passwords: [string]) {
