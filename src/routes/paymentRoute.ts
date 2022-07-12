@@ -7,7 +7,7 @@ const paymentRoute = Router();
 
 paymentRoute.post(
   "/payment/:cardId",
-  validateSchema( paymentSchema ),
+  validateSchema(paymentSchema),
   paymentController.buy
-)
+);
 export default paymentRoute;

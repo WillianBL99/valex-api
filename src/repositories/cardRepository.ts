@@ -1,13 +1,13 @@
 import Sqlstring from "sqlstring";
 import connection from "../config/database.js";
 import { mapObjectToUpdateQuery } from "../utils/sqlUtils.js";
-import { 
-  Card, 
-  CardList, 
+import {
+  Card,
+  CardList,
   CardBalance,
-  CardInsertData, 
-  CardUpdateData, 
-  TransactionTypes
+  CardInsertData,
+  CardUpdateData,
+  TransactionTypes,
 } from "../interfaces/cardInterface.js";
 
 export async function find() {
@@ -24,7 +24,7 @@ export async function findById(id: number) {
   return result.rows[0];
 }
 
-export async function findActiveCardByEmployeeId( employId: number) {
+export async function findActiveCardByEmployeeId(employId: number) {
   const result = await connection.query<CardList, [number]>(
     `SELECT 
       number,
@@ -34,7 +34,7 @@ export async function findActiveCardByEmployeeId( employId: number) {
       "password"
     FROM cards 
     WHERE "employeeId"=$1 AND password IS NOT NULL`,
-    [ employId ]
+    [employId]
   );
 
   return result.rows;
@@ -120,22 +120,22 @@ export async function update(id: number, cardData: CardUpdateData) {
   );
 }
 
-export async function balance( id: number ) {
+export async function balance(id: number) {
   const paymentsAmount = `
     SELECT COALESCE(SUM(p.amount),0)
     FROM payments p
-    WHERE p."cardId"=${Sqlstring.escape( id )}
-  `
+    WHERE p."cardId"=${Sqlstring.escape(id)}
+  `;
   const rechargesAmount = `COALESCE(SUM(r.amount),0)`;
 
   const { rows } = await connection.query<CardBalance, [number]>(
     `SELECT (${rechargesAmount} - (${paymentsAmount})) AS balance
     FROM recharges r
     WHERE r."cardId"=$1`,
-    [ id ]
+    [id]
   );
 
-  const [ balance ] = rows;
+  const [balance] = rows;
   return balance;
 }
 

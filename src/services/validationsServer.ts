@@ -6,9 +6,9 @@ import * as cardRepository from "../repositories/cardRepository.js";
 
 import AppError from "../config/error.js";
 
-export async function findCard( cardId: number ) {
-  const card = await cardRepository.findById( cardId );
-  if( !card ) {
+export async function findCard(cardId: number) {
+  const card = await cardRepository.findById(cardId);
+  if (!card) {
     throw new AppError(
       "Card not found",
       404,
@@ -20,8 +20,8 @@ export async function findCard( cardId: number ) {
   return card;
 }
 
-export function verifySecuritConde( card: Card, securityCode: string ) {
-  if( internalCryptr.decrypt( card.securityCode ) !== securityCode ) {
+export function verifySecuritConde(card: Card, securityCode: string) {
+  if (internalCryptr.decrypt(card.securityCode) !== securityCode) {
     throw new AppError(
       "Access danied",
       401,
@@ -31,12 +31,12 @@ export function verifySecuritConde( card: Card, securityCode: string ) {
   }
 }
 
-export function cardIsValid( card: Card ) {
-  const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
+export function cardIsValid(card: Card) {
+  const [expiryMonth, expiryYear] = card.expirationDate.split("/");
 
-  const { month, year } = parseDataToInt( expiryMonth, expiryYear );
+  const { month, year } = parseDataToInt(expiryMonth, expiryYear);
   const { currentMonth, currentYear } = getCurrentData();
-  if( currentMonth > month && currentYear >= year ) {
+  if (currentMonth > month && currentYear >= year) {
     throw new AppError(
       "Card is expired",
       409,
@@ -46,8 +46,8 @@ export function cardIsValid( card: Card ) {
   }
 }
 
-export function cardIsUnlocked( card: Card ) {
-  if( card.isBlocked ) {
+export function cardIsUnlocked(card: Card) {
+  if (card.isBlocked) {
     throw new AppError(
       "Card blocked",
       401,
@@ -57,9 +57,9 @@ export function cardIsUnlocked( card: Card ) {
   }
 }
 
-export function checkCardId( cardIdParams: any ) {
-  const cardId = parseInt( cardIdParams );
-  if( !cardId || isNaN( cardId ) ) {
+export function checkCardId(cardIdParams: any) {
+  const cardId = parseInt(cardIdParams);
+  if (!cardId || isNaN(cardId)) {
     throw new AppError(
       "Bad body request",
       422,

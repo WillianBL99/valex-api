@@ -5,10 +5,10 @@ class AppError {
   detail;
 
   constructor(
-    log: string = 'Something went wrong',
+    log: string = "Something went wrong",
     statusCode: number = 400,
-    message: string = 'Something went wrong',
-    detail: string = 'An unexpected error occurred',
+    message: string = "Something went wrong",
+    detail: string = "An unexpected error occurred"
   ) {
     this.log = log;
     this.statusCode = statusCode;

@@ -3,4 +3,3 @@ interface ITypes {
 }
 
 export default ITypes;
-

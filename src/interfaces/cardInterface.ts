@@ -1,9 +1,9 @@
 export type TransactionTypes =
-| "groceries"
-| "restaurant"
-| "transport"
-| "education"
-| "health";
+  | "groceries"
+  | "restaurant"
+  | "transport"
+  | "education"
+  | "health";
 
 export interface Card {
   id: number;
@@ -30,11 +30,11 @@ export interface CardList {
 export interface CreateCard {
   cpf: string;
   companyId: number;
-  type: TransactionTypes
-};
+  type: TransactionTypes;
+}
 
 export interface CardBalance {
-  balance: Number
+  balance: Number;
 }
 
 export type CardInsertData = Omit<Card, "id">;

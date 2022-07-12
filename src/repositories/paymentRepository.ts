@@ -1,5 +1,8 @@
 import connection from "../config/database.js";
-import { PaymentInsertData, PaymentWithBusinessName } from "../interfaces/paymentInterface.js";
+import {
+  PaymentInsertData,
+  PaymentWithBusinessName,
+} from "../interfaces/paymentInterface.js";
 
 export async function findByCardId(cardId: number) {
   const result = await connection.query<PaymentWithBusinessName, [number]>(

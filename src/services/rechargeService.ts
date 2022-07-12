@@ -7,20 +7,20 @@ import * as validationServer from "../services/validationsServer.js";
 
 import AppError from "../config/error.js";
 
-export async function recharge( rechardData: RechargeCard ) {
+export async function recharge(rechardData: RechargeCard) {
   const { cardId, companyId, amount } = rechardData;
 
-  const card = await validationServer.findCard( cardId );
-  validationServer.cardIsUnlocked( card );
-  employeeIsEployed( card, companyId );
-  validationServer.cardIsValid( card );
-  
-  await rechargeRepository.insert({ amount, cardId })
+  const card = await validationServer.findCard(cardId);
+  validationServer.cardIsUnlocked(card);
+  employeeIsEployed(card, companyId);
+  validationServer.cardIsValid(card);
+
+  await rechargeRepository.insert({ amount, cardId });
 }
 
-async function employeeIsEployed( card: Card, companyId: number ) {
-  const employee = await employeeRepository.findById( card.employeeId );
-  if( employee.companyId !== companyId ) {
+async function employeeIsEployed(card: Card, companyId: number) {
+  const employee = await employeeRepository.findById(card.employeeId);
+  if (employee.companyId !== companyId) {
     throw new AppError(
       "Employee not found",
       404,

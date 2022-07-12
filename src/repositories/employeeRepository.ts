@@ -13,7 +13,7 @@ export async function findById(id: number) {
 export async function findByCompanyIdAndCPF(cpf: string, companyId: number) {
   const result = await connection.query<Employee, [string, number]>(
     `SELECT * FROM employees WHERE cpf=$1 AND "companyId"=$2`,
-    [ cpf, companyId ]
+    [cpf, companyId]
   );
 
   return result.rows[0];

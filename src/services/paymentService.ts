@@ -1,7 +1,11 @@
 import { Card } from "../interfaces/cardInterface.js";
 import { Business } from "../interfaces/businessInterface.js";
 import { PaymentCard } from "../interfaces/paymentInterface.js";
-import { cardIsValid, findCard, verifySecuritConde } from "./validationsServer.js";
+import {
+  cardIsValid,
+  findCard,
+  verifySecuritConde,
+} from "./validationsServer.js";
 
 import * as businessRepository from "../repositories/businessRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
@@ -10,26 +14,26 @@ import * as validationServer from "../services/validationsServer.js";
 
 import AppError from "../config/error.js";
 
-export async function buy( paymentCardData: PaymentCard ) {
+export async function buy(paymentCardData: PaymentCard) {
   const { amount, businessId, cardId, cvv } = paymentCardData;
-  
-  const card = await findCard( cardId );
 
-  verifySecuritConde( card, cvv );
-  cardIsActive( card );
-  cardIsValid( card );
-  
-  validationServer.cardIsUnlocked( card );
-  await hasEnoughBalance( cardId, amount );
+  const card = await findCard(cardId);
 
-  const business = await findBusiness( businessId );
-  areTheSameType( card, business );
+  verifySecuritConde(card, cvv);
+  cardIsActive(card);
+  cardIsValid(card);
+
+  validationServer.cardIsUnlocked(card);
+  await hasEnoughBalance(cardId, amount);
+
+  const business = await findBusiness(businessId);
+  areTheSameType(card, business);
 
   await paymentRepository.insert({ amount, businessId, cardId });
 }
 
-function cardIsActive( card: Card ) {
-  if( !card.password ) {
+function cardIsActive(card: Card) {
+  if (!card.password) {
     throw new AppError(
       "Card is disabled",
       409,
@@ -39,8 +43,8 @@ function cardIsActive( card: Card ) {
   }
 }
 
-function areTheSameType( card: Card, business: Business) {
-  if( card.type !== business.type ) {
+function areTheSameType(card: Card, business: Business) {
+  if (card.type !== business.type) {
     throw new AppError(
       "Card is different type to business",
       409,
@@ -50,9 +54,9 @@ function areTheSameType( card: Card, business: Business) {
   }
 }
 
-async function findBusiness( businessId: number ) {
-  const business = await businessRepository.findById( businessId );
-  if( !business ) {
+async function findBusiness(businessId: number) {
+  const business = await businessRepository.findById(businessId);
+  if (!business) {
     throw new AppError(
       "Business not found",
       404,
@@ -64,9 +68,9 @@ async function findBusiness( businessId: number ) {
   return business;
 }
 
-async function hasEnoughBalance( cardId: number, amount: number ) {
-  const { balance } = await cardRepository.balance( cardId );
-  if( balance < amount ) {
+async function hasEnoughBalance(cardId: number, amount: number) {
+  const { balance } = await cardRepository.balance(cardId);
+  if (balance < amount) {
     throw new AppError(
       "Don't have enough balance",
       409,

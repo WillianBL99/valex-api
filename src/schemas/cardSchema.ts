@@ -7,5 +7,5 @@ export const handleCardIsBlockedSchema = Joi.object({ password });
 
 export const infoCards = Joi.object({
   employeeId,
-  passwords: Joi.array().items( password ).required()
+  passwords: Joi.array().items(password).required(),
 });

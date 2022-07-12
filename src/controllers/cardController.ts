@@ -5,55 +5,56 @@ import * as cardService from "../services/cardService.js";
 import * as validationServer from "../services/validationsServer.js";
 
 export interface CreateCardBody {
-  cpf: string,
-  type: TransactionTypes
+  cpf: string;
+  type: TransactionTypes;
 }
 
 export interface ActiveCardBody {
-  cvv: number,
-  password: string
+  cvv: number;
+  password: string;
 }
 
 export interface CardListBody {
-  passwords: [string],
-  employeeId: number
+  passwords: [string];
+  employeeId: number;
 }
 
-export async function createCard( req: Request, res: Response ) {
-  const { cpf, type } : CreateCardBody = req.body;
+export async function createCard(req: Request, res: Response) {
+  const { cpf, type }: CreateCardBody = req.body;
   const { companyId } = res.locals.companyData;
 
   const cardCreateData: CreateCard = {
     companyId,
     cpf,
-    type
-  }
+    type,
+  };
 
-  await cardService.create( cardCreateData );
-  res.sendStatus( 201 );
+  await cardService.create(cardCreateData);
+  res.sendStatus(201);
 }
 
+export async function activeCard(req: Request, res: Response) {
+  const { cvv, password }: ActiveCardBody = req.body;
 
-export async function activeCard( req: Request, res: Response ) {
-  const { cvv, password } : ActiveCardBody = req.body;
-
-  const cardId = validationServer.checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId(req.params.id);
 
   const securityCode = cvv.toString();
-  await cardService.active( cardId, securityCode, password );
-  res.sendStatus( 200 );
+  await cardService.active(cardId, securityCode, password);
+  res.sendStatus(200);
 }
 
-export async function balanceAndTransactions( req: Request, res: Response ) {
-  const cardId = validationServer.checkCardId( req.params.id );
-  const trasactionAndBalanceData = await cardService.balanceAndTransactions( cardId );
+export async function balanceAndTransactions(req: Request, res: Response) {
+  const cardId = validationServer.checkCardId(req.params.id);
+  const trasactionAndBalanceData = await cardService.balanceAndTransactions(
+    cardId
+  );
 
   res.send({ trasactionAndBalanceData });
 }
 
-export async function infoCards( req: Request, res: Response ) {
+export async function infoCards(req: Request, res: Response) {
   const { passwords, employeeId }: CardListBody = req.body;
-  
+
   const cards = await cardService.findCardsByEmployeeIdAndPasswords(
     employeeId,
     passwords
@@ -62,18 +63,18 @@ export async function infoCards( req: Request, res: Response ) {
   res.send({ cards });
 }
 
-export async function blockCard( req: Request, res: Response ) {
+export async function blockCard(req: Request, res: Response) {
   const { password }: { password: string } = req.body;
-  const cardId = validationServer.checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId(req.params.id);
 
-  await cardService.blockCard( cardId, password );
-  res.sendStatus( 200 );
+  await cardService.blockCard(cardId, password);
+  res.sendStatus(200);
 }
 
-export async function unlock( req: Request, res: Response ) {
+export async function unlock(req: Request, res: Response) {
   const { password }: { password: string } = req.body;
-  const cardId = validationServer.checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId(req.params.id);
 
-  await cardService.unlockCard( cardId, password );
-  res.sendStatus( 200 );
+  await cardService.unlockCard(cardId, password);
+  res.sendStatus(200);
 }

@@ -5,5 +5,5 @@ export const paymentSchema = Joi.object({
   cvv,
   amount,
   password,
-  businessId
-})
+  businessId,
+});

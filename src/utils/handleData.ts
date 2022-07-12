@@ -6,6 +6,6 @@ export function getCurrentData() {
   return { currentMonth, currentYear, currentFullYear };
 }
 
-export function parseDataToInt( month: string, year: string ) {
+export function parseDataToInt(month: string, year: string) {
   return { month: parseInt(month), year: parseInt(year) };
 }

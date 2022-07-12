@@ -8,9 +8,9 @@ const rechargeRoute = Router();
 
 rechargeRoute.post(
   "/recharge/:cardId",
-  validateSchema( rechargeSchema),
+  validateSchema(rechargeSchema),
   apiKeyHeaderValidation,
   rechargeController.rechargeCard
-)
+);
 
 export default rechargeRoute;

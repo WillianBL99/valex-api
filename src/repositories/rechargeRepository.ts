@@ -1,5 +1,8 @@
 import connection from "../config/database.js";
-import { Recharge, RechargeInsertData } from "../interfaces/rechargeInterface.js";
+import {
+  Recharge,
+  RechargeInsertData,
+} from "../interfaces/rechargeInterface.js";
 
 export async function findByCardId(cardId: number) {
   const result = await connection.query<Recharge, [number]>(

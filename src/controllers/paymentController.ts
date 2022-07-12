@@ -5,22 +5,22 @@ import * as paymentServer from "../services/paymentService.js";
 import * as validationServer from "../services/validationsServer.js";
 
 export interface PaymentCardBody {
-  amount: number,
-  businessId: number,
-  cvv: string
+  amount: number;
+  businessId: number;
+  cvv: string;
 }
-export async function buy( req: Request, res: Response ) {
+export async function buy(req: Request, res: Response) {
   const { amount, businessId, cvv }: PaymentCardBody = req.body;
-  const cardId = validationServer.checkCardId( req.params.cardId );
+  const cardId = validationServer.checkCardId(req.params.cardId);
 
   const paymentCardData: PaymentCard = {
     amount,
     businessId,
     cardId,
-    cvv
-  }
-  
-  await paymentServer.buy( paymentCardData );
+    cvv,
+  };
 
-  res.sendStatus( 200 );
+  await paymentServer.buy(paymentCardData);
+
+  res.sendStatus(200);
 }
