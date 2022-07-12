@@ -1,8 +1,10 @@
-import AppError from "../config/error";
+import { Card } from "../interfaces/cardInterface.js";
+import { internalCryptr } from "../utils/encrypt.js";
+import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
+
 import * as cardRepository from "../repositories/cardRepository.js";
-import { Card } from "../repositories/cardRepository.js";
-import { internalCryptr } from "../utils/encrypt";
-import { getCurrentData, parseDataToInt } from "../utils/handleData";
+
+import AppError from "../config/error.js";
 
 export async function findCard( cardId: number ) {
   const card = await cardRepository.findById( cardId );

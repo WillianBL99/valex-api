@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
-import { TransactionTypes } from "../repositories/cardRepository.js";
+import { CreateCard, TransactionTypes } from "../interfaces/cardInterface.js";
+
 import * as cardService from "../services/cardService.js";
-import { checkCardId } from "../services/checkCardIdService.js";
+import * as validationServer from "../services/validationsServer.js";
 
 export interface CreateCardBody {
   cpf: string,
@@ -22,7 +23,7 @@ export async function createCard( req: Request, res: Response ) {
   const { cpf, type } : CreateCardBody = req.body;
   const { companyId } = res.locals.companyData;
 
-  const cardCreateData: cardService.CreateCard = {
+  const cardCreateData: CreateCard = {
     companyId,
     cpf,
     type
@@ -36,7 +37,7 @@ export async function createCard( req: Request, res: Response ) {
 export async function activeCard( req: Request, res: Response ) {
   const { cvv, password } : ActiveCardBody = req.body;
 
-  const cardId = checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId( req.params.id );
 
   const securityCode = cvv.toString();
   await cardService.active( cardId, securityCode, password );
@@ -56,7 +57,7 @@ export async function infoCards( req: Request, res: Response ) {
 
 export async function blockCard( req: Request, res: Response ) {
   const { password }: { password: string } = req.body;
-  const cardId = checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId( req.params.id );
 
   await cardService.blockCard( cardId, password );
   res.sendStatus( 200 );
@@ -64,7 +65,7 @@ export async function blockCard( req: Request, res: Response ) {
 
 export async function unlock( req: Request, res: Response ) {
   const { password }: { password: string } = req.body;
-  const cardId = checkCardId( req.params.id );
+  const cardId = validationServer.checkCardId( req.params.id );
 
   await cardService.unlockCard( cardId, password );
   res.sendStatus( 200 );

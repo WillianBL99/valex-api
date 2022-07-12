@@ -1,24 +1,19 @@
-import { Card } from "../repositories/cardRepository.js";
+import { Card } from "../interfaces/cardInterface.js";
+import { RechargeCard } from "../interfaces/rechargeInterface.js";
 
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
-import * as validationService from "../services/validationsServer.js";
+import * as validationServer from "../services/validationsServer.js";
 
 import AppError from "../config/error.js";
-
-export interface RechargeCard {
-  cardId: number,
-  companyId: number,
-  amount: number
-}
 
 export async function recharge( rechardData: RechargeCard ) {
   const { cardId, companyId, amount } = rechardData;
 
-  const card = await validationService.findCard( cardId );
-  validationService.cardIsUnlocked( card );
+  const card = await validationServer.findCard( cardId );
+  validationServer.cardIsUnlocked( card );
   employeeIsEployed( card, companyId );
-  validationService.cardIsValid( card );
+  validationServer.cardIsValid( card );
   
   await rechargeRepository.insert({ amount, cardId })
 }

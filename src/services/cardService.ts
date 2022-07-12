@@ -1,21 +1,22 @@
 
 import { faker } from "@faker-js/faker";
 import { getCurrentData } from "../utils/handleData.js";
-import { TransactionTypes } from "../repositories/cardRepository.js";
 import { internalBcrypt, internalCryptr } from "../utils/encrypt.js";
+import { 
+  Card, 
+  CardInsertData, 
+  CardList, 
+  CardUpdateData, 
+  CreateCard, 
+  TransactionTypes
+} from "../interfaces/cardInterface.js";
 
 import * as cardRepository from "../repositories/cardRepository.js";
-import * as validationService from "../services/validationsServer.js";
+import * as validationServer from "../services/validationsServer.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
 
 import AppError from "../config/error.js";
 import "./../config/setup.js";
-
-export interface CreateCard {
-  cpf: string,
-  companyId: number,
-  type: TransactionTypes
-}
 
 export async function create( cardCreateData: CreateCard ) {
   const { cpf, companyId, type } = cardCreateData;
@@ -28,7 +29,7 @@ export async function create( cardCreateData: CreateCard ) {
   const expirationDate = setExpirationDate();
   const securityCode = setSecuritCodeCard();
 
-  const cardInsertData : cardRepository.CardInsertData = {
+  const cardInsertData : CardInsertData = {
     type,
     number,
     employeeId,
@@ -43,13 +44,13 @@ export async function create( cardCreateData: CreateCard ) {
 }
 
 export async function active( cardId: number, securityCode: string, password: string ) {
-  const card = await validationService.findCard( cardId );
-  validationService.verifySecuritConde( card, securityCode );
-  validationService.cardIsValid( card );
+  const card = await validationServer.findCard( cardId );
+  validationServer.verifySecuritConde( card, securityCode );
+  validationServer.cardIsValid( card );
   hasNoPassword( card );
   const hashedPassword = await internalBcrypt.hashValue( password );
 
-  const updateCardData: cardRepository.CardUpdateData = {
+  const updateCardData: CardUpdateData = {
     password: hashedPassword,
     isBlocked: false
   }
@@ -66,50 +67,23 @@ export async function findCardsByEmployeeIdAndPasswords( employeeId: number, pas
 }
 
 export async function blockCard( cardId:number, password: string ) {
-  const card = await validationService.findCard( cardId );
+  const card = await validationServer.findCard( cardId );
   verifyPassword( card, password );
-  validationService.cardIsValid( card );
-  validationService.cardIsUnlocked( card );
+  validationServer.cardIsValid( card );
+  validationServer.cardIsUnlocked( card );
   
   const cardBlockData = { isBlocked: true };
   await cardRepository.update( cardId, cardBlockData );
 }
 
 export async function unlockCard( cardId:number, password: string ) {
-  const card = await validationService.findCard( cardId );
+  const card = await validationServer.findCard( cardId );
   verifyPassword( card, password );
-  validationService.cardIsValid( card );
+  validationServer.cardIsValid( card );
   cardIsBlockd( card );
   
   const cardBlockData = { isBlocked: false };
   await cardRepository.update( cardId, cardBlockData );
-}
-
-export async function findEmployee( cpf: string, companyId: number ) {
-  const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
-
-  if( !employee ) {
-    throw new AppError(
-      "Employee not found",
-      404,
-      "Employee not found",
-      "Make sure this employee is employeed by this company"
-    );
-  }
-
-  return employee;
-}
-
-async function isDifferentTypeCard( type: TransactionTypes , employeeId: number ) {
-  const findCardSameType = await cardRepository.findByTypeAndEmployeeId( type, employeeId );
-  if( findCardSameType ) {
-    throw new AppError(
-      "there was a conflict creating this card type",
-      409,
-      "there was a conflict creating this card type",
-      "make sure this employee does not have a card of the same type"
-    );
-  }
 }
 
 function setCardName( fullName: string ) {
@@ -156,7 +130,7 @@ function setSecuritCodeCard() {
 }
 
 async function handleListCardRequest( employeeId: number, passwords: [string]) {
-  let cards: cardRepository.CardList[] = [];
+  let cards: CardList[] = [];
   const passwordAux = [...passwords];
 
   const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
@@ -178,7 +152,7 @@ async function handleListCardRequest( employeeId: number, passwords: [string]) {
   return cards;
 }
 
-function hasNoPassword( card: cardRepository.Card ) {
+function hasNoPassword( card: Card ) {
   if( card.password ) {
     throw new AppError(
       "Card already has password",
@@ -189,7 +163,7 @@ function hasNoPassword( card: cardRepository.Card ) {
   }
 }
 
-export function verifyPassword( card: cardRepository.Card, password: string ) {
+export function verifyPassword( card: Card, password: string ) {
   const hashedPassword = card.password as string;
 
   if( !internalBcrypt.compareSync( password, hashedPassword ) ) {
@@ -214,13 +188,40 @@ async function employeeIsEmployed( employeeId: number ) {
   }
 }
 
-function cardIsBlockd( card: cardRepository.Card ) {
+function cardIsBlockd( card: Card ) {
   if( !card.isBlocked ) {
     throw new AppError(
       "Card alread unlocked",
       401,
       "Card alread unlocked",
       "This card alread unlocked. Operation unauthorized."
+    );
+  }
+}
+
+export async function findEmployee( cpf: string, companyId: number ) {
+  const employee = await employeeRepository.findByCompanyIdAndCPF( cpf, companyId );
+
+  if( !employee ) {
+    throw new AppError(
+      "Employee not found",
+      404,
+      "Employee not found",
+      "Make sure this employee is employeed by this company"
+    );
+  }
+
+  return employee;
+}
+
+async function isDifferentTypeCard( type: TransactionTypes , employeeId: number ) {
+  const findCardSameType = await cardRepository.findByTypeAndEmployeeId( type, employeeId );
+  if( findCardSameType ) {
+    throw new AppError(
+      "there was a conflict creating this card type",
+      409,
+      "there was a conflict creating this card type",
+      "make sure this employee does not have a card of the same type"
     );
   }
 }
