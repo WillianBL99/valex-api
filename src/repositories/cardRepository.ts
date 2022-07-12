@@ -1,42 +1,14 @@
 import Sqlstring from "sqlstring";
 import connection from "../config/database.js";
 import { mapObjectToUpdateQuery } from "../utils/sqlUtils.js";
-
-export type TransactionTypes =
-  | "groceries"
-  | "restaurant"
-  | "transport"
-  | "education"
-  | "health";
-
-export interface Card {
-  id: number;
-  employeeId: number;
-  number: string;
-  cardholderName: string;
-  securityCode: string;
-  expirationDate: string;
-  password?: string;
-  isVirtual: boolean;
-  originalCardId?: number;
-  isBlocked: boolean;
-  type: TransactionTypes;
-}
-
-export interface CardList {
-  number: string,
-  cardholderName: string,
-  expirationDate: string,
-  securityCode: string,
-  password: string
-}
-
-export interface CardBalance {
-  balance: Number
-}
-
-export type CardInsertData = Omit<Card, "id">;
-export type CardUpdateData = Partial<Card>;
+import { 
+  Card, 
+  CardList, 
+  CardBalance,
+  CardInsertData, 
+  CardUpdateData, 
+  TransactionTypes
+} from "../interfaces/cardInterface.js";
 
 export async function find() {
   const result = await connection.query<Card>("SELECT * FROM cards");

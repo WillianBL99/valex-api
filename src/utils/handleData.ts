@@ -3,7 +3,7 @@ export function getCurrentData() {
   const currentFullYear = new Date().getFullYear();
   const currentYear = currentFullYear % 100;
 
-  return { currentMonth, currentYear }
+  return { currentMonth, currentYear, currentFullYear };
 }
 
 export function parseDataToInt( month: string, year: string ) {

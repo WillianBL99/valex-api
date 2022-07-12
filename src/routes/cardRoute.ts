@@ -6,7 +6,7 @@ import * as cardController from "../controllers/cardController.js";
 
 const cardRoute = Router();
 
-cardRoute.post( "/card", validateSchema( cardSchema ), apiKeyHeaderValidation, cardController.createCard );
+cardRoute.post( "/card/create", validateSchema( cardSchema ), apiKeyHeaderValidation, cardController.createCard );
 cardRoute.post( "/card/:id/active", validateSchema( cardActiveSchema ), cardController.activeCard );
 cardRoute.post( "/cards/info", validateSchema( infoCards ), cardController.infoCards );
 cardRoute.post( "/card/block/:id", validateSchema( handleCardIsBlockedSchema ), cardController.blockCard );

@@ -1,28 +1,25 @@
-import AppError from "../config/error.js";
-import { cardIsValid, findCard, verifySecuritConde } from "./cardService.js";
-import { cardIsUnlocked } from "./rechargeService.js";
+import { Card } from "../interfaces/cardInterface.js";
+import { Business } from "../interfaces/businessInterface.js";
+import { PaymentCard } from "../interfaces/paymentInterface.js";
+import { cardIsValid, findCard, verifySecuritConde } from "./validationsServer.js";
+
 import * as businessRepository from "../repositories/businessRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
 import * as paymentRepository from "../repositories/paymentRepository.js";
-import { Card } from "../repositories/cardRepository.js";
-import { Business } from "../repositories/businessRepository.js";
+import * as validationServer from "../services/validationsServer.js";
 
-export interface PaymentCard {
-  cardId: number,
-  cvv: string,
-  businessId: number,
-  amount: number
-}
+import AppError from "../config/error.js";
 
 export async function buy( paymentCardData: PaymentCard ) {
   const { amount, businessId, cardId, cvv } = paymentCardData;
   
   const card = await findCard( cardId );
 
+  verifySecuritConde( card, cvv );
   cardIsActive( card );
   cardIsValid( card );
-  cardIsUnlocked( card );
-  verifySecuritConde( card, cvv );
+  
+  validationServer.cardIsUnlocked( card );
   await hasEnoughBalance( cardId, amount );
 
   const business = await findBusiness( businessId );
