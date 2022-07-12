@@ -110,6 +110,7 @@ $ npm run dev
 ```
 
 ---
+[:outbox_tray:](#----valex-api--)
 ## :money_with_wings: Payment
 
 ### POST /payment/:cardId
@@ -130,6 +131,7 @@ $ npm run dev
 ```
 
 ---
+[:outbox_tray:](#----valex-api--)
 ## :moneybag: Recharge
 
 ### POST /recharge/:cardId
