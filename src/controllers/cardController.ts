@@ -44,6 +44,13 @@ export async function activeCard( req: Request, res: Response ) {
   res.sendStatus( 200 );
 }
 
+export async function balanceAndTransactions( req: Request, res: Response ) {
+  const cardId = validationServer.checkCardId( req.params.id );
+  const trasactionAndBalanceData = await cardService.balanceAndTransactions( cardId );
+
+  res.send({ trasactionAndBalanceData });
+}
+
 export async function infoCards( req: Request, res: Response ) {
   const { passwords, employeeId }: CardListBody = req.body;
   

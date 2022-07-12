@@ -8,6 +8,7 @@ const cardRoute = Router();
 
 cardRoute.post( "/card/create", validateSchema( cardSchema ), apiKeyHeaderValidation, cardController.createCard );
 cardRoute.post( "/card/:id/active", validateSchema( cardActiveSchema ), cardController.activeCard );
+cardRoute.get( "/card/:id/transactions", cardController.balanceAndTransactions );
 cardRoute.post( "/cards/info", validateSchema( infoCards ), cardController.infoCards );
 cardRoute.post( "/card/block/:id", validateSchema( handleCardIsBlockedSchema ), cardController.blockCard );
 cardRoute.post( "/card/unlock/:id", validateSchema( handleCardIsBlockedSchema ), cardController.unlock );
