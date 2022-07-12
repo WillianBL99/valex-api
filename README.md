@@ -59,6 +59,40 @@ $ npm run dev
     {}
 ```
 
+### GET /card/:id/trasaction
+```
+  - route to show banlance and transactions
+  - header: {}
+  - body: {}
+  - status: 200
+  - response data: 
+```  
+```json
+    {
+      "trasactionAndBalanceData": {
+        "balance": "154950",
+        "transactions": [
+          {
+            "id": $4,
+            "cardId": $10,
+            "businessId": $5,
+            "timestamp": "$2022-07-12T18:43:07.050Z",
+            "amount": $50,
+            "businessName": "$Unimed"
+          }
+        ],
+        "recharges": [
+          {
+            "id": $4,
+            "cardId": $10,
+            "timestamp": "$2022-07-12T18:41:24.366Z",
+            "amount": $55000
+          }
+        ]
+      }
+    }
+```
+
 ### POST /card/info
 ```
   - route to show employee cards
@@ -137,7 +171,7 @@ $ npm run dev
 ### POST /recharge/:cardId
 ```
   - route to make a recharge
-  - header: {}
+  - header: {'x-api-key': '$somekey'}
   - body: {
       amount: '$10000'
     }
