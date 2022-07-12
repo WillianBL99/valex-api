@@ -1,15 +1,15 @@
 
 import { faker } from "@faker-js/faker";
+import { getCurrentData } from "../utils/handleData.js";
 import { TransactionTypes } from "../repositories/cardRepository.js";
-import { getCurrentData, parseDataToInt } from "../utils/handleData.js";
+import { internalBcrypt, internalCryptr } from "../utils/encrypt.js";
 
-import * as employeeRepository from "../repositories/employeeRepository.js";
 import * as cardRepository from "../repositories/cardRepository.js";
+import * as validationService from "../services/validationsServer.js";
+import * as employeeRepository from "../repositories/employeeRepository.js";
 
 import AppError from "../config/error.js";
 import "./../config/setup.js";
-import { internalBcrypt, internalCryptr } from "../utils/encrypt.js";
-import { cardIsUnlocked } from "./rechargeService.js";
 
 export interface CreateCard {
   cpf: string,
@@ -43,9 +43,9 @@ export async function create( cardCreateData: CreateCard ) {
 }
 
 export async function active( cardId: number, securityCode: string, password: string ) {
-  const card = await findCard( cardId );
-  cardIsValid( card );
-  verifySecuritConde( card, securityCode );
+  const card = await validationService.findCard( cardId );
+  validationService.verifySecuritConde( card, securityCode );
+  validationService.cardIsValid( card );
   hasNoPassword( card );
   const hashedPassword = await internalBcrypt.hashValue( password );
 
@@ -66,19 +66,19 @@ export async function findCardsByEmployeeIdAndPasswords( employeeId: number, pas
 }
 
 export async function blockCard( cardId:number, password: string ) {
-  const card = await findCard( cardId );
-  cardIsValid( card );
+  const card = await validationService.findCard( cardId );
   verifyPassword( card, password );
-  cardIsUnlocked( card );
+  validationService.cardIsValid( card );
+  validationService.cardIsUnlocked( card );
   
   const cardBlockData = { isBlocked: true };
   await cardRepository.update( cardId, cardBlockData );
 }
 
 export async function unlockCard( cardId:number, password: string ) {
-  const card = await findCard( cardId );
-  cardIsValid( card );
+  const card = await validationService.findCard( cardId );
   verifyPassword( card, password );
+  validationService.cardIsValid( card );
   cardIsBlockd( card );
   
   const cardBlockData = { isBlocked: false };
@@ -119,9 +119,7 @@ function setCardName( fullName: string ) {
   const containMiddleName = splitName && splitName?.length >= 3;
 
   if( containMiddleName ) {
-    for( let i = 1; i < splitName.length - 1; i++ ) {
-      splitName[i] = splitName[i].slice(0,1);
-    }
+    reduceMiddleName( splitName );
   }
 
   const cardName = splitName?.join(" ").toUpperCase() || "";
@@ -129,11 +127,16 @@ function setCardName( fullName: string ) {
   return cardName;
 }
 
+function reduceMiddleName( arrayFullName: RegExpMatchArray ) {
+  for( let i = 1; i < arrayFullName.length - 1; i++ ) {
+    arrayFullName[i] = arrayFullName[i].slice(0,1);
+  }
+}
+
 function setExpirationDate() {
-  const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth();
+  const { currentMonth, currentFullYear } = getCurrentData();
   const expirationTime = 5;
-  const expiryYear = ( currentYear + expirationTime ) % 100;
+  const expiryYear = ( currentFullYear + expirationTime ) % 100;
 
   const padStartZero = ( value: number ) => {
     return String(value).padStart(2,"0");
@@ -152,34 +155,27 @@ function setSecuritCodeCard() {
   return securityCode;
 }
 
-export async function findCard( cardId: number ) {
-  const card = await cardRepository.findById( cardId );
-  if( !card ) {
-    throw new AppError(
-      "Card not found",
-      404,
-      "Card not found",
-      "Make sure to send a valid card data"
-    );
+async function handleListCardRequest( employeeId: number, passwords: [string]) {
+  let cards: cardRepository.CardList[] = [];
+  const passwordAux = [...passwords];
+
+  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
+  
+  for( let card of cardsResponse ) {
+    for(let i = 0; i < passwordAux.length; i++){
+      const approvedPassword = internalBcrypt.compareSync(
+        passwordAux[i], card.password
+      );
+
+      if( approvedPassword ){
+        const securityCode = internalCryptr.decrypt( card.securityCode );
+        cards.push({...card, securityCode });
+        passwordAux.splice(i,1);
+      }
+    }
   }
 
-  return card;
-}
-
-export function cardIsValid( card: cardRepository.Card ) {
-  const [ expiryMonth, expiryYear ] = card.expirationDate.split("/");
-
-  const { month, year } = parseDataToInt( expiryMonth, expiryYear );
-  const { currentMonth, currentYear } = getCurrentData();
-  if( currentMonth > month && currentYear >= year ) {
-    throw new AppError(
-      "Card is expired",
-      409,
-      "Card is expired",
-      "This card is expired. Unauthorized update."
-    );
-  }
-  return;
+  return cards;
 }
 
 function hasNoPassword( card: cardRepository.Card ) {
@@ -189,17 +185,6 @@ function hasNoPassword( card: cardRepository.Card ) {
       409,
       "Card already has password",
       "This card already has password. Unauthorized update."
-    );
-  }
-}
-
-export function verifySecuritConde( card: cardRepository.Card, securityCode: string ) {
-  if( internalCryptr.decrypt( card.securityCode ) !== securityCode ) {
-    throw new AppError(
-      "Access danied",
-      401,
-      "Access denied",
-      "Access denied to this card"
     );
   }
 }
@@ -227,29 +212,6 @@ async function employeeIsEmployed( employeeId: number ) {
       "Make sure this employee is employeed by this company"
     );
   }
-}
-
-async function handleListCardRequest( employeeId: number, passwords: [string]) {
-  let cards: cardRepository.CardList[] = [];
-  const passwordAux = [...passwords];
-
-  const cardsResponse = await cardRepository.findActiveCardByEmployeeId( employeeId );
-  
-  for( let card of cardsResponse ) {
-    for(let i = 0; i < passwordAux.length; i++){
-      const approvedPassword = internalBcrypt.compareSync(
-        passwordAux[i], card.password
-      );
-
-      if( approvedPassword ){
-        const securityCode = internalCryptr.decrypt( card.securityCode );
-        cards.push({...card, securityCode });
-        passwordAux.splice(i,1);
-      }
-    }
-  }
-
-  return cards;
 }
 
 function cardIsBlockd( card: cardRepository.Card ) {

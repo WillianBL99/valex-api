@@ -1,10 +1,10 @@
+import { Card } from "../repositories/cardRepository.js";
 
-import * as cardService from "../services/cardService.js";
 import * as rechargeRepository from "../repositories/rechargeRepository.js";
 import * as employeeRepository from "../repositories/employeeRepository.js";
+import * as validationService from "../services/validationsServer.js";
 
 import AppError from "../config/error.js";
-import { Card } from "../repositories/cardRepository.js";
 
 export interface RechargeCard {
   cardId: number,
@@ -15,23 +15,12 @@ export interface RechargeCard {
 export async function recharge( rechardData: RechargeCard ) {
   const { cardId, companyId, amount } = rechardData;
 
-  const card = await cardService.findCard( cardId );
-  cardIsUnlocked( card );
+  const card = await validationService.findCard( cardId );
+  validationService.cardIsUnlocked( card );
   employeeIsEployed( card, companyId );
-  cardService.cardIsValid( card );
+  validationService.cardIsValid( card );
   
   await rechargeRepository.insert({ amount, cardId })
-}
-
-export function cardIsUnlocked( card: Card ) {
-  if( card.isBlocked ) {
-    throw new AppError(
-      "Card blocked",
-      401,
-      "Card blocked",
-      "This card is blocked. Operation unauthorized."
-    );
-  }
 }
 
 async function employeeIsEployed( card: Card, companyId: number ) {
